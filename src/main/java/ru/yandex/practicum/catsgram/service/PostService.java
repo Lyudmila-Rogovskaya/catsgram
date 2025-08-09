@@ -9,6 +9,7 @@ import ru.yandex.practicum.catsgram.model.SortOrder;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,14 +19,19 @@ public class PostService {
     private final Map<Long, Post> posts = new HashMap<>();
     private final Comparator<Post> postDateComparator = Comparator.comparing(Post::getPostDate);
 
-    public Collection<Post> findAll(SortOrder sort, int from, int size) {
+    public Collection<Post> findAll(int from, int size, SortOrder sort) {
+        Comparator<Post> comparator = Comparator.comparing(Post::getPostDate);
+
+        Comparator<Post> finalComparator = (sort == SortOrder.ASCENDING)
+                ? comparator
+                : comparator.reversed();
+
         return posts.values()
                 .stream()
-                .sorted(sort.equals(SortOrder.ASCENDING) ?
-                        postDateComparator : postDateComparator.reversed())
+                .sorted(finalComparator)
                 .skip(from)
                 .limit(size)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public Post create(Post post) {
