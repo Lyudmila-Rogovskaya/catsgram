@@ -9,28 +9,30 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.2</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <!-- координаты артефакта проекта -->
     <groupId>ru.yandex.practicum</groupId>
-    <artifactId>Catsgram</artifactId>
+    <artifactId>catsgram</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <!-- блок параметров проекта -->
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>21</java.version>
+
+        <!--     PLUGINS     -->
+        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     </properties>
 
     <!-- блок настройки зависимостей проекта -->
     <dependencies>
         <!-- подключаем Gson -->
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <!-- подключаем Lombok -->
         <dependency>
@@ -55,33 +57,34 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>${maven-compiler-plugin.version}</version>
             </plugin>
 
             <!-- подключаем плагин, позволяющий упаковывать приложение и внешние зависимости в один запускаемый JAR-файл -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <!-- Добавленные параметры -->
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <failOnViolation>true</failOnViolation>
                     <logViolationsToConsole>true</logViolationsToConsole>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>check</goal>
                         </goals>
-                        <!-- Измененная фаза -->
-                        <phase>verify</phase>
+                        <phase>compile</phase>
                     </execution>
                 </executions>
             </plugin>

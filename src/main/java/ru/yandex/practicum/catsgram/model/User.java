@@ -6,9 +6,8 @@ import lombok.EqualsAndHashCode;
 import java.time.Instant;
 
 @Data
-@EqualsAndHashCode(of = {"email"})
+@EqualsAndHashCode(of = { "email" })
 public class User { // модель, описывающая пользователей социальной сети
-
     private Long id; // уникальный идентификатор пользователя
     private String username; // имя пользователя
     private String email; // электронная почта пользователя

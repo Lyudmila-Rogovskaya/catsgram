@@ -1,34 +1,39 @@
 package ru.yandex.practicum.catsgram.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.catsgram.model.User;
 import ru.yandex.practicum.catsgram.service.UserService;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping
     public Collection<User> findAll() { // получение списка всех пользователей
         return userService.findAll();
     }
 
+    @GetMapping("/{userId}")
+    public Optional<User> findById(@PathVariable long userId) {
+        return userService.findById(userId);
+    }
+
     @PostMapping
-    public User create(@RequestBody User user) { // добавление нового пользователя
+    @ResponseStatus(HttpStatus.CREATED)
+    public User create(@RequestBody User user) {
         return userService.create(user);
     }
 
     @PutMapping
-    public User update(@RequestBody User newUser) { // обновление данных пользователя
-        return userService.update(newUser);
+    public User update(@RequestBody User user) { // обновление данных пользователя
+        return userService.update(user);
     }
 
 }

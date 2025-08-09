@@ -1,18 +1,21 @@
 package ru.yandex.practicum.catsgram.service;
 
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.DuplicatedDataException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.User;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserService {
+
     private final Map<Long, User> users = new HashMap<>();
-    private final Map<String, User> emailIndex = new HashMap<>();
-    private long nextId = 1;
 
     public Collection<User> findAll() {
         return users.values();
@@ -22,14 +25,12 @@ public class UserService {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             throw new ConditionsNotMetException("Имейл должен быть указан");
         }
-        if (emailIndex.containsKey(user.getEmail())) {
-            throw new DuplicatedDataException("Этот имейл уже используется");
+        if (users.containsValue(user)) {
+            throw new DuplicatedDataException("Данный имейл уже используется");
         }
-
-        user.setId(nextId++);
+        user.setId(getNextId());
         user.setRegistrationDate(Instant.now());
         users.put(user.getId(), user);
-        emailIndex.put(user.getEmail(), user);
         return user;
     }
 
@@ -37,31 +38,37 @@ public class UserService {
         if (newUser.getId() == null) {
             throw new ConditionsNotMetException("Id должен быть указан");
         }
-        User oldUser = users.get(newUser.getId());
-        if (oldUser == null) {
-            throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
-        }
-
-        if (newUser.getEmail() != null && !newUser.getEmail().equals(oldUser.getEmail())) {
-            if (emailIndex.containsKey(newUser.getEmail())) {
-                throw new DuplicatedDataException("Этот имейл уже используется");
+        if (users.containsKey(newUser.getId())) {
+            User oldUser = users.get(newUser.getId());
+            if (newUser.getEmail() != null &&
+                    !oldUser.getEmail().equalsIgnoreCase(newUser.getEmail())) {
+                if (users.containsValue(newUser)) {
+                    throw new DuplicatedDataException("Данный имейл уже используется");
+                }
+                oldUser.setEmail(newUser.getEmail());
             }
-            emailIndex.remove(oldUser.getEmail());
-            emailIndex.put(newUser.getEmail(), oldUser);
-            oldUser.setEmail(newUser.getEmail());
+            if (newUser.getUsername() != null && !newUser.getUsername().isBlank()) {
+                oldUser.setUsername(newUser.getUsername());
+            }
+            if (newUser.getPassword() != null && !newUser.getPassword().isBlank()) {
+                oldUser.setPassword(newUser.getPassword());
+            }
+            return oldUser;
         }
-
-        if (newUser.getUsername() != null) {
-            oldUser.setUsername(newUser.getUsername());
-        }
-        if (newUser.getPassword() != null) {
-            oldUser.setPassword(newUser.getPassword());
-        }
-        return oldUser;
+        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
     }
 
-    public Optional<User> findUserById(long id) {
-        return Optional.ofNullable(users.get(id));
+    public Optional<User> findById(long authorId) {
+        return Optional.ofNullable(users.get(authorId));
+    }
+
+    private long getNextId() {
+        long currentMaxId = users.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0);
+        return ++currentMaxId;
     }
 
 }
