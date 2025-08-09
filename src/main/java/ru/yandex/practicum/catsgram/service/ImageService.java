@@ -1,12 +1,14 @@
 package ru.yandex.practicum.catsgram.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
+import ru.yandex.practicum.catsgram.exception.ImageFileException;
+import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Image;
+import ru.yandex.practicum.catsgram.model.ImageData;
 import ru.yandex.practicum.catsgram.model.Post;
 
 import java.io.IOException;
@@ -27,8 +29,34 @@ public class ImageService {
     private final Map<Long, Image> images = new HashMap<>();
 
     // директория для хранения изображений
-    @Value("${catsgram.image-directory}")
-    private String imageDirectory;
+    private final String imageDirectory = "C:/Users/Lyudmila.DESKTOP-GNFH95F/Downloads/Catsgram Desktop";
+
+    // загружаем данные указанного изображения с диска
+    public ImageData getImageData(long imageId) {
+        if (!images.containsKey(imageId)) {
+            throw new NotFoundException("Изображение с id = " + imageId + " не найдено");
+        }
+        Image image = images.get(imageId);
+        // загрузка файла с диска
+        byte[] data = loadFile(image);
+
+        return new ImageData(data, image.getOriginalFileName());
+    }
+
+    private byte[] loadFile(Image image) {
+        Path path = Paths.get(image.getFilePath());
+        if (Files.exists(path)) {
+            try {
+                return Files.readAllBytes(path);
+            } catch (IOException e) {
+                throw new ImageFileException("Ошибка чтения файла.  Id: " + image.getId()
+                        + ", name: " + image.getOriginalFileName(), e);
+            }
+        } else {
+            throw new ImageFileException("Файл не найден. Id: " + image.getId()
+                    + ", name: " + image.getOriginalFileName());
+        }
+    }
 
     // сохранение списка изображений, связанных с указанным постом
     public List<Image> saveImages(long postId, List<MultipartFile> files) {
